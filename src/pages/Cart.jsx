@@ -1,0 +1,15 @@
+import { Link } from 'react-router-dom';
+import { useStore } from '../context/StoreContext.jsx';
+import { formatKES } from '../data/products.js';
+
+export default function Cart() {
+  const { cart, products, subtotal, updateQuantity, removeFromCart } = useStore();
+  const lines = cart.map((item) => ({ ...item, product: products.find((p) => p.id === item.productId) })).filter((item) => item.product);
+  const shipping = subtotal >= 5000 || subtotal === 0 ? 0 : 250;
+  return (
+    <main className="container page-shell">
+      <div className="page-intro compact-intro"><div className="eyebrow">YOUR NEXORA BAG</div><h1>A few good <em>things.</em></h1><p>Take another look at your picks before you make them yours.</p></div>
+      {!lines.length ? <div className="empty-state cart-empty"><span>♡</span><h2>Your bag is taking a little breather.</h2><p>It's a good time to discover something you'll love.</p><Link className="button button-dark" to="/products">Explore the shop ↗</Link></div> : <div className="cart-layout"><section className="cart-items"><div className="cart-list-heading"><span>ITEMS ({lines.reduce((n, item) => n + item.quantity, 0)})</span><span>SUBTOTAL</span></div>{lines.map(({ product, quantity }) => <article className="cart-item" key={product.id}><Link to={`/products/${product.id}`} className="cart-item-image"><img src={product.image} alt={product.name} /></Link><div className="cart-item-info"><span className="eyebrow">{product.category}</span><Link to={`/products/${product.id}`} className="cart-item-title">{product.name}</Link><span className="cart-unit-price">{formatKES(product.price)} each</span><div className="cart-item-controls"><div className="quantity-control small"><button onClick={() => updateQuantity(product.id, quantity - 1)} aria-label="Decrease quantity">−</button><span>{quantity}</span><button onClick={() => updateQuantity(product.id, quantity + 1)} aria-label="Increase quantity">+</button></div><button className="remove-button" onClick={() => removeFromCart(product.id)}>Remove</button></div></div><strong className="cart-line-total">{formatKES(product.price * quantity)}</strong></article>)}<Link className="continue-link" to="/products">← Continue shopping</Link></section><aside className="order-summary"><h2>Order summary</h2><div className="summary-row"><span>Subtotal</span><strong>{formatKES(subtotal)}</strong></div><div className="summary-row"><span>Delivery</span><strong>{shipping === 0 ? 'FREE' : formatKES(shipping)}</strong></div>{subtotal > 0 && subtotal < 5000 && <p className="shipping-hint">Add {formatKES(5000 - subtotal)} more for free delivery.</p>}<div className="summary-total"><span>Total</span><strong>{formatKES(subtotal + shipping)}</strong></div><Link className="button button-dark checkout-button" to="/checkout">Continue to checkout <span>↗</span></Link><p className="secure-note">⌑ Secure checkout experience · Demo only</p></aside></div>}
+    </main>
+  );
+}
